@@ -1,0 +1,59 @@
+/* zenmarkdown.tcss */
+
+Screen {
+    /* Use a monospaced font if supported by terminal natively, 
+       otherwise it relies on terminal settings, but we can set 
+       the theme or specific properties if needed */
+    background: $surface;
+}
+
+DirectoryTree {
+    width: 50;
+    height: 100%;
+    dock: left;
+    display: block;  /* Default visible */
+    border-right: vkey $background;
+}
+
+#editor-container {
+    height: 100%;
+    width: 1fr;
+}
+
+TextArea, Markdown {
+    height: 1fr; /* Take all remaining vertical space in the vertical container */
+    /* Clean look */
+    border: none;
+    padding: 1 2;
+}
+
+Markdown {
+    display: none;
+    background: $surface;
+}
+
+/* Optional focus visual styles */
+DirectoryTree:focus {
+    border-right: vkey $accent;
+}
+
+TextArea:focus {
+    border: none;
+}
+
+#cursor-position {
+    dock: bottom;
+    text-align: right;
+    padding-right: 2;
+    background: $surface;
+    color: $text-muted;
+}
+
+#cursor-pos {
+    height: 1;
+    width: 100%;
+    text-align: right;
+    padding: 0 2;
+    background: $surface;
+    color: $text-muted;
+}
