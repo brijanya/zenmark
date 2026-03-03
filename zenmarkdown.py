@@ -6,9 +6,6 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import DirectoryTree, Footer, Header, TextArea, Label, Markdown
 
-from time import sleep
-
-
 class Zenmark(App):
     """A minimalist, keyboard-centric daily planner."""
 
