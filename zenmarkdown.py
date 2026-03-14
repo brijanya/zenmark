@@ -2,75 +2,10 @@ import os
 from pathlib import Path
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical, Center, Middle
-from textual.screen import ModalScreen
-from textual.widgets import DirectoryTree, Footer, Header, TextArea, Label, Markdown, Input
+from textual.containers import Horizontal, Vertical
+from textual.widgets import DirectoryTree, Footer, Header, TextArea, Label, Markdown
 
-class NewFileScreen(ModalScreen[str]):
-    """Screen that asks for a new file name."""
-
-    BINDINGS = [Binding("escape", "cancel", "Cancel")]
-
-    def compose(self) -> ComposeResult:
-        with Center():
-            with Middle():
-                yield Vertical(
-                    Label("Enter new file name:"),
-                    Input(placeholder="filename.md", id="new-file-input"),
-                    id="new-file-dialog"
-                )
-
-    def on_mount(self) -> None:
-        # Style the dialog dynamically
-        dialog = self.query_one("#new-file-dialog")
-        dialog.styles.width = 40
-        dialog.styles.height = "auto"
-        dialog.styles.border = ("thick", "white")
-        dialog.styles.background = "black"
-        self.query_one(Input).focus()
-
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        """When user hits enter in the input."""
-        self.dismiss(event.value)
-
-    def action_cancel(self) -> None:
-        """When user presses escape."""
-        self.dismiss(None)
-
-class ConfirmDeleteScreen(ModalScreen[bool]):
-    """Screen that asks for confirmation to delete a file."""
-
-    def __init__(self, filename: str):
-        super().__init__()
-        self.filename = filename
-
-    BINDINGS = [
-        Binding("y", "confirm", "Yes"),
-        Binding("n", "cancel", "No"),
-        Binding("escape", "cancel", "Cancel"),
-    ]
-
-    def compose(self) -> ComposeResult:
-        with Center():
-            with Middle():
-                yield Vertical(
-                    Label(f"Are you sure you want to delete '{self.filename}'? (y/n)"),
-                    id="delete-dialog"
-                )
-
-    def on_mount(self) -> None:
-        # Style the dialog dynamically
-        dialog = self.query_one("#delete-dialog")
-        dialog.styles.width = "auto"
-        dialog.styles.height = "auto"
-        dialog.styles.border = ("thick", "red")
-        dialog.styles.background = "black"
-
-    def action_confirm(self) -> None:
-        self.dismiss(True)
-
-    def action_cancel(self) -> None:
-        self.dismiss(False)
+from screens import NewFileScreen, ConfirmDeleteScreen
 
 class Zenmark(App):
     """A minimalist, keyboard-centric daily planner."""
@@ -81,7 +16,6 @@ class Zenmark(App):
         Binding("ctrl+q", "quit", "Quit", show=True),
         Binding("ctrl+b", "toggle_sidebar", "Toggle Sidebar", show=True),
         Binding("ctrl+s", "save_file", "Save File", show=True),
-        Binding("ctrl+m", "toggle_markdown", "Toggle Markdown", show=True),
         Binding("ctrl+n", "create_file", "Create File", show=True),
         Binding("ctrl+d", "delete_file", "Delete File", show=True),
     ]
@@ -102,9 +36,12 @@ class Zenmark(App):
                 self.text_area = TextArea(language="markdown", id="editor")
                 self.text_area.show_line_numbers = True
                 yield self.text_area
+                yield Label("Ln 1, Col 1", id="cursor-pos")
+            
+            # The markdown preview viewer
+            with Vertical(id="markdown-container"):
                 self.markdown_viewer = Markdown(id="markdown")
                 yield self.markdown_viewer
-                yield Label("Ln 1, Col 1", id="cursor-pos")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -137,20 +74,9 @@ class Zenmark(App):
         tree = self.query_one(DirectoryTree)
         tree.display = not tree.display
         
-    async def action_toggle_markdown(self) -> None:
-        """Toggle between text editor and markdown preview."""
-        if self.text_area.display:
-            # Switch to markdown
-            self.text_area.display = False
-            self.markdown_viewer.display = True
-            await self.markdown_viewer.update(self.text_area.text)
-            self.query_one("#cursor-pos").display = False
-        else:
-            # Switch to text editor
-            self.markdown_viewer.display = False
-            self.text_area.display = True
-            self.query_one("#cursor-pos").display = True
-            self.text_area.focus()
+    async def on_text_area_changed(self, event: TextArea.Changed) -> None:
+        """Update markdown viewer automatically when text changes."""
+        await self.markdown_viewer.update(self.text_area.text)
             
     def action_save_file(self) -> None:
         """Save the current text area content to the active file."""

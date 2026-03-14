@@ -8,16 +8,22 @@ Screen {
 }
 
 DirectoryTree {
-    width: 50;
+    width: 35;
     height: 100%;
     dock: left;
     display: block;  /* Default visible */
-    border-right: vkey $background;
+    border-right: vkey $primary;
 }
 
 #editor-container {
     height: 100%;
     width: 1fr;
+}
+
+#markdown-container {
+    height: 100%;
+    width: 1fr;
+    border-left: solid $primary;
 }
 
 TextArea, Markdown {
@@ -28,7 +34,6 @@ TextArea, Markdown {
 }
 
 Markdown {
-    display: none;
     background: $surface;
 }
 
